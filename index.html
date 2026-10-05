@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>佳慧老師的 AI 小精靈 ✨</title>
+  <style>
+    :root {
+      --bg-color: #FDFBF7;
+      --card-bg: #FFFFFF;
+      --primary: #E07A5F;
+      --primary-light: #F4A261;
+      --secondary: #81B29A;
+      --text-main: #3D405B;
+      --text-muted: #6C757D;
+      --bot-bubble: #F4F1DE;
+      --user-bubble: #E07A5F;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 540px;
+      height: 94vh;
+      background: var(--card-bg);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(61, 64, 91, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 2px solid #F2CC8F;
+    }
+    /* 頂部標題列 */
+    .header {
+      background: linear-gradient(135deg, #F2CC8F 0%, #F4A261 100%);
+      padding: 14px 20px;
+      color: #3D405B;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .avatar {
+      width: 44px;
+      height: 44px;
+      background: #FFF;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+    .header-info h1 { font-size: 1.15rem; font-weight: 700; }
+    .header-info p { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+
+    /* 溫馨身分小選單 (選填) */
+    .identity-bar {
+      background: #FAF6EE;
+      padding: 8px 16px;
+      border-bottom: 1px dashed #E5DEC9;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      flex-shrink: 0;
+    }
+    .identity-bar label { font-weight: 600; color: var(--text-main); }
+    .identity-bar select, .identity-bar input {
+      padding: 5px 10px;
+      border-radius: 12px;
+      border: 1px solid #DCD3B8;
+      background: #FFF;
+      font-size: 0.84rem;
+      color: var(--text-main);
+      outline: none;
+    }
+    .identity-bar input { flex: 1; min-width: 140px; }
+
+    /* 對話訊息區 */
+    /* 對話訊息區 (加入 min-height: 0 確保捲軸正常滑動不遮字) */
+    .messages {
+      flex: 1;
+      min-height: 0; /* 關鍵：防止長文被壓縮或遮住 */
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 88%;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      flex-shrink: 0; /* 關鍵：禁止對話泡泡被擠壓變形 */
+    }
+    .msg.bot { align-self: flex-start; }
+    .msg.user { align-self: flex-end; }
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 18px;
+    }
+    .msg.bot .bubble {
+      background: var(--bot-bubble);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+    }
+    .msg.user .bubble {
+      background: var(--user-bubble);
+      color: #FFF;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* 快速提問按鈕區 (自動換行，完整呈現所有按鈕) */
+    .quick-prompts {
+      padding: 10px 14px;
+      background: #FDFBF7;
+      border-top: 1px solid #F0EAE1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .chip {
+      background: #FFF;
+      border: 1.5px solid #E07A5F;
+      color: #E07A5F;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip:hover {
+      background: #E07A5F;
+      color: #FFF;
+    }
+
+    /* 底部輸入框 */
+    .input-area {
+      padding: 10px 14px;
+      background: #FFF;
+      border-top: 1px solid #EEE;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 999px;
+      font-size: 0.94rem;
+      outline: none;
+    }
+    .input-area input:focus { border-color: var(--primary); }
+    .input-area button {
+      background: var(--primary);
+      color: #FFF;
+      border: none;
+      padding: 0 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <!-- 頂部標題 -->
+  <div class="header">
+    <div class="avatar">🧚‍♀️</div>
+    <div class="header-info">
+      <h1>佳慧老師的 AI 小精靈</h1>
+      <p>翻轉吧！課堂 ｜ 隨時傾聽、溫暖回應你的問題</p>
+    </div>
+  </div>
+
+  <!-- 溫馨身分小選單 (選填，保持匿名彈性) -->
+  <div class="identity-bar">
+    <label>🌱 請問你是？（選填）：</label>
+    <select id="roleSelect">
+      <option value="匿名訪客">✨ 保持神祕（匿名）</option>
+      <option value="班上學生">🎒 我是班上的小朋友</option>
+      <option value="學生家長">👨‍👩‍👧 我是孩子的家長</option>
+      <option value="教育夥伴">🍎 我是路過的老師 / 朋友</option>
+    </select>
+    <input type="text" id="nicknameInput" placeholder="可填小名或座號，如：5號小華、小明媽媽">
+  </div>
+
+  <!-- 聊天內容區 -->
+  <div class="messages" id="messages">
+    <div class="msg bot">
+      <div class="bubble">嗨！你好呀～我是「佳慧老師的 AI 小精靈」🧚‍♀️✨
+無論是想查詢今日聯絡簿、近期班級行事曆、不知道國語 MAPS 提問單怎麼下筆，或是有悄悄話想告訴佳慧老師，都可以直接點下方的按鈕或打字問我喔！（我們的對話佳慧老師在後台都看得到，會一起關心你喔💛）</div>
+    </div>
+  </div>
+
+  <!-- 快速提問按鈕 (自動換行全部顯示) -->
+  <div class="quick-prompts">
+    <button class="chip" onclick="sendQuickPrompt('📖 請問今天的聯絡簿回家作業與明日攜帶物品是什麼？')">📖 今日聯絡簿與作業</button>
+    <button class="chip" onclick="sendQuickPrompt('📅 請問近期班級有哪些重要行事曆？')">📅 近期班級重要行事曆</button>
+    <button class="chip" onclick="sendQuickPrompt('📝 請問國語 MAPS 提問單怎麼寫？有什麼小秘訣？')">📝 國語 MAPS 提問單怎麼寫？</button>
+    <button class="chip" onclick="sendQuickPrompt('🎒 請問班級作業與每日作息規範是什麼？')">🎒 班級作業與作息規範</button>
+    <button class="chip" onclick="sendQuickPrompt('💬 我有話想悄悄告訴佳慧老師...')">💬 我有話想悄悄告訴佳慧老師</button>
+  </div>
+
+  <!-- 輸入區 -->
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="在這裡輸入你想問的問題..." onkeypress="if(event.key==='Enter') sendMessage()">
+    <button id="sendBtn" onclick="sendMessage()">傳送</button>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // 請將下方網址替換成您部署好的 Google Apps Script 網址
+  // ==========================================
+  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxbj8214PEt9nWZsLCcbjvyRfLZljAF701kEPTBRR-22Rqox-qKfn0keqqRpG45tQnH/exec';
+
+  const messagesDiv = document.getElementById('messages');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const roleSelect = document.getElementById('roleSelect');
+  const nicknameInput = document.getElementById('nicknameInput');
+
+  let chatHistory = [];
+
+  function getUserIdentity() {
+    const role = roleSelect.value;
+    const nick = nicknameInput.value.trim();
+    return nick ? `${role}（${nick}）` : role;
+  }
+
+  function appendMessage(role, text) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `msg ${role}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    msgDiv.appendChild(bubble);
+    messagesDiv.appendChild(msgDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    return bubble;
+  }
+
+  function sendQuickPrompt(promptText) {
+    if (promptText.includes('悄悄告訴佳慧老師')) {
+      userInput.value = '佳慧老師，我想偷偷告訴您：';
+      userInput.focus();
+      return;
+    }
+    userInput.value = promptText;
+    sendMessage();
+  }
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    userInput.value = '';
+    appendMessage('user', text);
+    sendBtn.disabled = true;
+
+    const loadingBubble = appendMessage('bot', '🧚‍♀️ 小精靈正在翻閱佳慧老師的筆記本，請稍等一下下喔...');
+
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          userRole: getUserIdentity(),
+          message: text,
+          history: chatHistory
+        })
+      });
+
+      const data = await response.json();
+      const replyText = data.reply || '小精靈收到囉！';
+      loadingBubble.textContent = replyText;
+
+      chatHistory.push({ role: 'user', text: text });
+      chatHistory.push({ role: 'model', text: replyText });
+    } catch (error) {
+      loadingBubble.textContent = '哎呀，網路好像有點小塞車，請確認網址設定正確，或稍後再試一次喔！';
+    } finally {
+      sendBtn.disabled = false;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  }
+</script>
+
+</body>
+</html>
